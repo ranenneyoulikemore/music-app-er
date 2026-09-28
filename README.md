@@ -50,3 +50,4 @@ erDiagram
 
     %% Зв'язки плейліста
     PLAYLIST }o--o{ TRACK : "contains"
+    
