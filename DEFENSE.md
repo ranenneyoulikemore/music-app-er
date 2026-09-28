@@ -17,4 +17,8 @@ https://github.com/ranenneyoulikemore/music-app-er/commit/5a85d43d9dd7b64fe9f0a3
 Перевірка — узгодженість із попередньою моделлю (як перевірив):
 Перевірила відповідність Mermaid-коду опису в 'spec.md': кількість сутностей, типізація UUID, маркери PK/FK та зв'язки повністю збігаються.
 
-Здача: (а) посилання на GitHub PR; (б) цей заповнений DEFENSE.
+Здача: (а) посилання на GitHub PR;
+https://github.com/ranenneyoulikemore/music-app-er/commit/3b92afcd807b82b34fb409ed8ce5305f95e0da3e
+
+ (б) цей заповнений DEFENSE.
+https://docs.google.com/document/d/1O6Wed-o6aGPA-pWjx7QDi8Xe3UNf9HLVB5CAi1KrKXk/edit?usp=sharing
