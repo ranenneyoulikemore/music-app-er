@@ -1,0 +1,37 @@
+@startuml
+left to right direction
+
+actor "Користувач (User)" as User
+actor "Преміум-користувач (Premium User)" as PremiumUser
+actor "Зовнішній Audio CDN" as CDN << System >>
+
+User <|-- PremiumUser
+
+rectangle "Система стримінгу музики" {
+  usecase "Відтворювати трек" as UC_PlayTrack
+  usecase "Заблокувати артиста" as UC_BlockArtist
+  usecase "Отримати токен аутентифікації" as UC_GetToken
+  usecase "Переглядати плейліст" as UC_ViewPlaylist
+  usecase "Підвантажувати плейліст частинами" as UC_Paginate
+  usecase "Завантажити плейліст" as UC_Download
+  usecase "Слухати в офлайн-режимі" as UC_OfflinePlay
+}
+
+' Зв'язки акторів із прецедентами
+User --> UC_PlayTrack
+User --> UC_BlockArtist
+User --> UC_ViewPlaylist
+
+PremiumUser --> UC_Download
+PremiumUser --> UC_OfflinePlay
+
+' Взаємодія з зовнішньою системою
+CDN <-- UC_GetToken
+
+' Включення (include)
+UC_PlayTrack .> UC_GetToken : <<include>>
+
+' Розширення (extend)
+UC_Paginate .> UC_ViewPlaylist : <<extend>>\n(якщо > 50 треків)
+
+@enduml
