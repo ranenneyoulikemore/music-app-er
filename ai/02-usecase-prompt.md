@@ -295,3 +295,104 @@ UC_PlayOffline .> UC_PlayTrack : <<extend>>\n(якщо немає інтерне
 | **REQ-11** | US-10 | SC-16 | Оновлювати каталог (ARTIST, ALBUM, TRACK) | Покрито |
 | **NFR-01** | US-01 | SC-01 | Відтворювати TRACK | Покрито |
 | **NFR-02** | - | - | - | Не покрито (Out of scope через фоновий лог) |
+
+## Третій промпт
+в мене є use case діаграма в plantuml і спека до неї, треба щоб діаграма точно відповідала спеку, нічого не вигадуй від себе. стиль іменування прецедентів лишай мій, тобто з англійськими назвами сутностей великими літерами типу TRACK, ARTIST, PLAYLIST, але додай до кожного прецеденту номер від uc-01 до uc-14 в першому рядку підпису, як у спеці. актори такі: звичайний користувач, преміум користувач який успадковується від звичайного, і зовнішня система провайдер метаданих, яка сама запускає uc-14 про імпорт оновлень каталогу, cdn як актора не роби, його в спеці нема. прецеденти: пошук, відтворення, перевірка доступності треку (uc-03, не токен і не джерело аудіо, а саме чи трек не заблокований і чи завантажений для офлайну), додати у favorites, створити плейліст, додати трек до плейліста, переглядати плейліст, підвантажувати плейліст частинами, заблокувати артиста, заблокувати трек, абстрактний прецедент приховати контент (uc-11), завантажити плейліст для офлайн, слухати в офлайні, імпортувати оновлення каталогу. include два: і відтворення, і завантаження плейліста включають перевірку доступності. extend теж два: favorites розширює відтворення, а підвантаження частинами розширює перегляд плейліста з умовою більше 50 треків. ще узагальнення: блокування артиста і блокування треку обидва успадковуються від приховати контент. прецедента для обробки помилки джерела не треба, і слухання в офлайні не має розширювати відтворення, воно окремий прецедент, бо там взагалі нема стрімінгу. користувач має зв'язки з усім крім завантаження, офлайну та імпорту, преміум з завантаженням і офлайном. віддай тільки готовий код plantuml без пояснень. 
+
+@startuml
+left to right direction
+
+actor "Користувач (User)" as User
+actor "Преміум-користувач (Premium User)" as PremiumUser
+actor "Провайдер метаданих (Metadata Provider)" as MetadataProvider << System >>
+
+' Успадкування акторів
+User <|-- PremiumUser
+
+rectangle "Система стримінгу музики" {
+  usecase "UC-01\nШукати ARTIST, ALBUM, TRACK" as UC_Search
+  usecase "UC-02\nВідтворювати TRACK" as UC_PlayTrack
+  usecase "UC-03\nПеревірити доступність TRACK" as UC_CheckAvailability
+  usecase "UC-04\nДодати TRACK у favorites" as UC_FavoriteTrack
+  usecase "UC-05\nСтворити PLAYLIST" as UC_CreatePlaylist
+  usecase "UC-06\nДодати TRACK до PLAYLIST" as UC_AddTrackToPlaylist
+  usecase "UC-07\nПереглядати PLAYLIST" as UC_ViewPlaylist
+  usecase "UC-08\nПідвантажувати PLAYLIST частинами" as UC_Paginate
+  usecase "UC-09\nЗаблокувати ARTIST (blocks)" as UC_BlockArtist
+  usecase "UC-10\nЗаблокувати TRACK (blocks)" as UC_BlockTrack
+  usecase "UC-11\nПриховати контент\n(абстрактний)" as UC_HideContent
+  usecase "UC-12\nЗавантажити PLAYLIST для офлайн" as UC_DownloadPlaylist
+  usecase "UC-13\nСлухати TRACK в офлайн-режимі" as UC_PlayOffline
+  usecase "UC-14\nІмпортувати оновлення каталогу\n(ARTIST, ALBUM, TRACK)" as UC_ImportCatalog
+}
+
+' Зв'язки Звичайного користувача
+User --> UC_Search
+User --> UC_PlayTrack
+User --> UC_FavoriteTrack
+User --> UC_CreatePlaylist
+User --> UC_AddTrackToPlaylist
+User --> UC_ViewPlaylist
+User --> UC_BlockArtist
+User --> UC_BlockTrack
+
+' Зв'язки Преміум-користувача
+PremiumUser --> UC_DownloadPlaylist
+PremiumUser --> UC_PlayOffline
+
+' Зв'язки Зовнішньої системи (сама ініціює прецедент)
+MetadataProvider --> UC_ImportCatalog
+
+' Зв'язки включення (include)
+UC_PlayTrack .> UC_CheckAvailability : <<include>>
+UC_DownloadPlaylist .> UC_CheckAvailability : <<include>>
+
+' Зв'язки розширення (extend)
+UC_FavoriteTrack .> UC_PlayTrack : <<extend>>\n(натиснули ♥ під час відтворення)
+UC_Paginate .> UC_ViewPlaylist : <<extend>>\n(якщо > 50 треків)
+
+' Узагальнення прецедентів
+UC_BlockArtist --|> UC_HideContent
+UC_BlockTrack --|> UC_HideContent
+
+@enduml
+
+## Четвертий промпт
+Тепер зроби матрицю трасування в мд
+
+## Відповідь ШІ
+
+| ID | User Story | Gherkin-сценарій | Use Case (прецедент) | Пов'язані вимоги | Статус покриття |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **REQ-01** | US-01 | SC-01 | UC-02 Відтворювати TRACK, UC-03 Перевірити доступність TRACK | NFR-01 | Покрито |
+| **REQ-02** | US-01 | SC-02 | UC-02 Відтворювати TRACK | — | Покрито |
+| **REQ-03** | US-02 | SC-03, SC-05 | UC-09 Заблокувати ARTIST (blocks), UC-11 Приховати контент, UC-02 Відтворювати TRACK, UC-03 Перевірити доступність TRACK | — | Покрито |
+| **REQ-04** | US-03 | SC-04, SC-05 | UC-10 Заблокувати TRACK (blocks), UC-11 Приховати контент, UC-02 Відтворювати TRACK, UC-03 Перевірити доступність TRACK | — | Покрито |
+| **REQ-05** | US-04 | SC-06, SC-07 | UC-04 Додати TRACK у favorites, UC-02 Відтворювати TRACK | — | Покрито |
+| **REQ-06** | US-05 | SC-08 | UC-05 Створити PLAYLIST | — | Покрито |
+| **REQ-07** | US-07 | SC-09 | UC-07 Переглядати PLAYLIST, UC-08 Підвантажувати PLAYLIST частинами | — | Покрито |
+| **REQ-08** | US-08 | SC-10 | UC-01 Шукати ARTIST, ALBUM, TRACK | — | Покрито |
+| **REQ-09** | US-09 | SC-11, SC-12 | UC-12 Завантажити PLAYLIST для офлайн, UC-03 Перевірити доступність TRACK | — | Покрито |
+| **REQ-10** | US-09 | SC-13, SC-14 | UC-13 Слухати TRACK в офлайн-режимі, UC-03 Перевірити доступність TRACK | — | Покрито |
+| **REQ-11** | US-10 | SC-16 | UC-14 Імпортувати оновлення каталогу (ARTIST, ALBUM, TRACK) | NFR-02 | Покрито |
+| **NFR-01** | — | SC-01 | UC-02 Відтворювати TRACK | REQ-01 | Покрито |
+| **NFR-02** | — | — | UC-14 Імпортувати оновлення каталогу (ARTIST, ALBUM, TRACK) | REQ-11 | **Не покрито сценарієм** (лог перевіряється системним тестом) |
+| **— (вимоги немає)** | US-06 | SC-15 | UC-06 Додати TRACK до PLAYLIST | — | **Не покрито вимогою** |
+
+| Use Case | Вимоги | Gherkin | Статус |
+| :--- | :--- | :--- | :--- |
+| UC-01 Шукати ARTIST, ALBUM, TRACK | REQ-08 | SC-10 | Покрито |
+| UC-02 Відтворювати TRACK | REQ-01, REQ-02, REQ-03, REQ-04, REQ-05, NFR-01 | SC-01, SC-02, SC-05, SC-06 | Покрито |
+| UC-03 Перевірити доступність TRACK | REQ-01, REQ-03, REQ-04, REQ-09, REQ-10 | SC-01, SC-05, SC-11, SC-14 | Покрито |
+| UC-04 Додати TRACK у favorites | REQ-05 | SC-06, SC-07 | Покрито |
+| UC-05 Створити PLAYLIST | REQ-06 | SC-08 | Покрито |
+| UC-06 Додати TRACK до PLAYLIST | — | SC-15 | **Не покрито вимогою** |
+| UC-07 Переглядати PLAYLIST | REQ-07 | SC-09 | Покрито |
+| UC-08 Підвантажувати PLAYLIST частинами | REQ-07 | SC-09 | Покрито |
+| UC-09 Заблокувати ARTIST (blocks) | REQ-03 | SC-03, SC-05 | Покрито |
+| UC-10 Заблокувати TRACK (blocks) | REQ-04 | SC-04, SC-05 | Покрито |
+| UC-11 Приховати контент (абстрактний) | REQ-03, REQ-04 | SC-03, SC-04, SC-05 | Покрито |
+| UC-12 Завантажити PLAYLIST для офлайн | REQ-09 | SC-11, SC-12 | Покрито |
+| UC-13 Слухати TRACK в офлайн-режимі | REQ-10 | SC-13, SC-14 | Покрито |
+| UC-14 Імпортувати оновлення каталогу (ARTIST, ALBUM, TRACK) | REQ-11, NFR-02 | SC-16 | Покрито |
+ 
