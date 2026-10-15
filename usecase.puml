@@ -3,35 +3,55 @@ left to right direction
 
 actor "Користувач (User)" as User
 actor "Преміум-користувач (Premium User)" as PremiumUser
-actor "Зовнішній Audio CDN" as CDN << System >>
+actor "Провайдер метаданих (Metadata Provider)" as MetadataProvider << System >>
 
+' Успадкування акторів
 User <|-- PremiumUser
 
 rectangle "Система стримінгу музики" {
-  usecase "Відтворювати трек" as UC_PlayTrack
-  usecase "Заблокувати артиста" as UC_BlockArtist
-  usecase "Отримати токен аутентифікації" as UC_GetToken
-  usecase "Переглядати плейліст" as UC_ViewPlaylist
-  usecase "Підвантажувати плейліст частинами" as UC_Paginate
-  usecase "Завантажити плейліст" as UC_Download
-  usecase "Слухати в офлайн-режимі" as UC_OfflinePlay
+  usecase "UC-01\nШукати ARTIST, ALBUM, TRACK" as UC_Search
+  usecase "UC-02\nВідтворювати TRACK" as UC_PlayTrack
+  usecase "UC-03\nПеревірити доступність TRACK" as UC_CheckAvailability
+  usecase "UC-04\nДодати TRACK у favorites" as UC_FavoriteTrack
+  usecase "UC-05\nСтворити PLAYLIST" as UC_CreatePlaylist
+  usecase "UC-06\nДодати TRACK до PLAYLIST" as UC_AddTrackToPlaylist
+  usecase "UC-07\nПереглядати PLAYLIST" as UC_ViewPlaylist
+  usecase "UC-08\nПідвантажувати PLAYLIST частинами" as UC_Paginate
+  usecase "UC-09\nЗаблокувати ARTIST (blocks)" as UC_BlockArtist
+  usecase "UC-10\nЗаблокувати TRACK (blocks)" as UC_BlockTrack
+  usecase "UC-11\nПриховати контент\n(абстрактний)" as UC_HideContent
+  usecase "UC-12\nЗавантажити PLAYLIST для офлайн" as UC_DownloadPlaylist
+  usecase "UC-13\nСлухати TRACK в офлайн-режимі" as UC_PlayOffline
+  usecase "UC-14\nІмпортувати оновлення каталогу\n(ARTIST, ALBUM, TRACK)" as UC_ImportCatalog
 }
 
-' Зв'язки акторів із прецедентами
+' Зв'язки Звичайного користувача
+User --> UC_Search
 User --> UC_PlayTrack
-User --> UC_BlockArtist
+User --> UC_FavoriteTrack
+User --> UC_CreatePlaylist
+User --> UC_AddTrackToPlaylist
 User --> UC_ViewPlaylist
+User --> UC_BlockArtist
+User --> UC_BlockTrack
 
-PremiumUser --> UC_Download
-PremiumUser --> UC_OfflinePlay
+' Зв'язки Преміум-користувача
+PremiumUser --> UC_DownloadPlaylist
+PremiumUser --> UC_PlayOffline
 
-' Взаємодія з зовнішньою системою
-CDN <-- UC_GetToken
+' Зв'язки Зовнішньої системи (сама ініціює прецедент)
+MetadataProvider --> UC_ImportCatalog
 
-' Включення (include)
-UC_PlayTrack .> UC_GetToken : <<include>>
+' Зв'язки включення (include)
+UC_PlayTrack .> UC_CheckAvailability : <<include>>
+UC_DownloadPlaylist .> UC_CheckAvailability : <<include>>
 
-' Розширення (extend)
+' Зв'язки розширення (extend)
+UC_FavoriteTrack .> UC_PlayTrack : <<extend>>\n(натиснули ♥ під час відтворення)
 UC_Paginate .> UC_ViewPlaylist : <<extend>>\n(якщо > 50 треків)
+
+' Узагальнення прецедентів
+UC_BlockArtist --|> UC_HideContent
+UC_BlockTrack --|> UC_HideContent
 
 @enduml
