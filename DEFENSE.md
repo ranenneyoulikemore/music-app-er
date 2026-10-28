@@ -15,5 +15,5 @@
 Перевірила всі ID (UC, REQ, NFR, SC, US) між спекою й обома таблицями — сходиться. З ERD  теж усе збігається по назвах сутностей (TRACK, ARTIST, ALBUM, PLAYLIST, blocks, favorites). Єдине, що виявила під час перевірки — у першій лабі я не додала статус Premium і збереження завантажених пісень, тож треба буде докинути в БД поля `premium_until` у USER і таблицю `downloads`.
 
 ## Здача:
-(а) Посилання на GitHub PR: <посилання_на_pr>
+(а) Посилання на GitHub PR: https://github.com/ranenneyoulikemore/music-app-er/pull/4
 (б) Цей DEFENSE.md
