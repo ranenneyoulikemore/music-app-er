@@ -14,4 +14,5 @@
 Перевірка — узгодженість із попередньою моделлю (як перевірив):
 Перевірила типи даних у сигнатурах викликів — усе `trackId`, `userId`, `playlistId` мають тип `UUID`, що точно відповідає PK/FK сутностей `TRACK`, `USER`, `PLAYLIST` з ERD. Послідовності кроків повністю відтворюють Gherkin-сценарії SC-01, SC-02, SC-05, а `AudioStorageProvider` виступає внутрішнім бекенд-учасником, що відповідає ADR-0003.
 
-Здача: (а) посилання на GitHub PR:  (б) цей заповнений DEFENSE.
+Здача: (а) посилання на GitHub PR:  
+(б) цей заповнений DEFENSE. https://docs.google.com/document/d/1AH6CkWsDRzSi4Q3zZkND7qqfOWJHQ14whSMJ7IGpHjY/edit?hl=ru&tab=t.0
