@@ -26,13 +26,17 @@ sequenceDiagram
     AudioService->>AudioStorageProvider: requestStream(trackId: UUID): AudioStream
     activate AudioStorageProvider
 
-    opt Таймаут відповіді >= 5000 мс
+    break Таймаут очікування джерела (>= 5000 мс)
         Note over AudioStorageProvider,AudioService: Час очікування перевищено (5000 мс)
         AudioService-->>AppClient: 504 Gateway Timeout
         AppClient-->>User: showError(message: String)
     end
 
+    AudioStorageProvider-->>AudioService: AudioStream
     deactivate AudioStorageProvider
+    AudioService-->>AppClient: 200 OK (AudioStreamDTO)
+    AppClient-->>User: renderPlayer(stream: AudioStreamDTO)
+
     deactivate AudioService
     deactivate AppClient
 ```

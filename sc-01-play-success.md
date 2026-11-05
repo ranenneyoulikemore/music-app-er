@@ -15,26 +15,26 @@ sequenceDiagram
 
     AudioService->>BlockService: checkBlockStatus(userId: UUID, trackId: UUID): BlockStatusDTO
     activate BlockService
-    BlockService-->>AudioService: BlockStatusDTO(isBlocked = false)
+    BlockService-->>AudioService: BlockStatusDTO(isBlocked: Boolean)
     deactivate BlockService
 
-    alt isBlocked == false
-        AudioService->>TrackRepository: getTrackMetadata(trackId: UUID): TrackDTO
-        activate TrackRepository
-        TrackRepository-->>AudioService: TrackDTO
-        deactivate TrackRepository
-
-        AudioService->>AudioStorageProvider: requestStream(trackId: UUID): AudioStream
-        activate AudioStorageProvider
-        AudioStorageProvider-->>AudioService: AudioStream
-        deactivate AudioStorageProvider
-
-        AudioService-->>AppClient: 200 OK (AudioStreamDTO)
-        AppClient-->>User: renderPlayer(stream: AudioStreamDTO)
-    else isBlocked == true
+    break isBlocked == true
         AudioService-->>AppClient: 403 Forbidden (TrackBlockedException)
         AppClient-->>User: showError(message: String)
     end
+
+    AudioService->>TrackRepository: getTrackMetadata(trackId: UUID): TrackDTO
+    activate TrackRepository
+    TrackRepository-->>AudioService: TrackDTO
+    deactivate TrackRepository
+
+    AudioService->>AudioStorageProvider: requestStream(trackId: UUID): AudioStream
+    activate AudioStorageProvider
+    AudioStorageProvider-->>AudioService: AudioStream
+    deactivate AudioStorageProvider
+
+    AudioService-->>AppClient: 200 OK (AudioStreamDTO)
+    AppClient-->>User: renderPlayer(stream: AudioStreamDTO)
 
     deactivate AudioService
     deactivate AppClient
