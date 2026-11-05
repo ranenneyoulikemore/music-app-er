@@ -19,9 +19,11 @@ sequenceDiagram
         BlockService-->>AudioService: BlockStatusDTO(isBlocked: Boolean)
         deactivate BlockService
 
-        alt isBlocked == true
+        opt isBlocked == true
             AudioService->>AudioService: skipTrack(trackId: UUID): Void
-        else isBlocked == false
+        end
+
+        opt isBlocked == false
             AudioService->>TrackRepository: getTrackMetadata(trackId: UUID): TrackDTO
             activate TrackRepository
             TrackRepository-->>AudioService: TrackDTO
