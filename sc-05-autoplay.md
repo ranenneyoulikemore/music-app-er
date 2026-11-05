@@ -1,3 +1,4 @@
+```mermaid
 sequenceDiagram
     autonumber
     actor User
@@ -25,10 +26,12 @@ sequenceDiagram
             activate TrackRepository
             TrackRepository-->>AudioService: TrackDTO
             deactivate TrackRepository
+
             AudioService->>AudioStorageProvider: requestStream(trackId: UUID): AudioStream
             activate AudioStorageProvider
             AudioStorageProvider-->>AudioService: AudioStream
             deactivate AudioStorageProvider
+
             AudioService-->>AppClient: 200 OK (AudioStreamDTO)
             AppClient-->>User: renderPlayer(stream: AudioStreamDTO)
         end
@@ -36,3 +39,4 @@ sequenceDiagram
 
     deactivate AudioService
     deactivate AppClient
+```
