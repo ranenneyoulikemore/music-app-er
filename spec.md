@@ -31,9 +31,12 @@
 - AC-3: Кожна залежність між компонентами іде через іменований інтерфейс (lollipop/socket).
 - AC-4: Імена AppClient, AudioService, BlockService, TrackRepository, AudioStorageProvider збігаються з Sequence (Завд. 3).
 - AC-5: AudioService викликає IBlock перед ITrackData та IAudioStorage (ADR-0004, Activity Завд. 4).
-- AC-6: AppClient взаємодіє з бекендом лише через ApiGateway (ADR-0006); AppClient не залежить від сервісів і репозиторіїв.
-- AC-7: До MusicDB звертаються лише TrackRepository і UserDataRepository; сервіси до БД напряму не звертаються.
+- AC-6: AppClient взаємодіє з бекендом лише через ApiGateway (ADR-0006).
+  - AC-6а: AppClient не має залежностей від BlockService, AudioService, PlaylistService, SearchService, репозиторіїв; єдина залежність — IApi.
+- AC-7: До MusicDB звертаються лише TrackRepository і UserDataRepository.
+  - AC-7а: Сервіси залежать від БД лише транзитивно через ITrackData та IUserData; прямих залежностей сервіс -> SQL/MusicDB немає. AudioService requires ITrackData.
 - AC-8: MetadataProvider залежить від ICatalogImport; система не викликає MetadataProvider (ADR-0003).
+  - AC-8а: ICatalogImport надається CatalogImportService (lollipop); MetadataProvider — required-сторона (socket).
 - AC-9: CatalogImportService залежить від ILog (NFR-02, ADR-0002).
 - AC-10: Артефакт — PlantUML component diagram + один рендер.
 
