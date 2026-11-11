@@ -1,0 +1,101 @@
+@startuml
+top to bottom direction
+skinparam componentStyle uml2
+skinparam packagePadding 25
+skinparam nodesep 40
+skinparam ranksep 40
+
+' Зовнішні компоненти (поза межею)
+component "AudioStorageProvider" as AudioStorageProvider <<external>>
+component "MetadataProvider" as MetadataProvider <<external>>
+
+' Інтерфейс зовнішньої системи CDN
+() "IAudioStorage" as IAudioStorage
+AudioStorageProvider -left- IAudioStorage
+
+package "Music Streaming System" {
+    
+    component "AppClient" as AppClient {
+        [OfflineStore]
+    }
+    
+    component "ApiGateway" as ApiGateway
+    
+    package "Services Layer" {
+        component "AuthService" as AuthService
+        component "AudioService" as AudioService
+        component "BlockService" as BlockService
+        component "PlaylistService" as PlaylistService
+        component "SearchService" as SearchService
+        component "CatalogImportService" as CatalogImportService
+    }
+    
+    package "Data Access Layer" {
+        component "TrackRepository" as TrackRepository
+        component "UserDataRepository" as UserDataRepository
+    }
+    
+    database "MusicDB" as MusicDB
+    component "LogStore" as LogStore
+    
+    ' Provided-інтерфейси всередині межі системи
+    () "IApi" as IApi
+    () "IAuth" as IAuth
+    () "IAudio" as IAudio
+    () "IBlock" as IBlock
+    () "IPlaylist" as IPlaylist
+    () "ISearch" as ISearch
+    () "ICatalogImport" as ICatalogImport
+    () "ITrackData" as ITrackData
+    () "IUserData" as IUserData
+    () "SQL" as SQL
+    () "ILog" as ILog
+}
+
+' Зв'язки Provided (Lollipop)
+ApiGateway -up- IApi
+AuthService -up- IAuth
+AudioService -up- IAudio
+BlockService -up- IBlock
+PlaylistService -up- IPlaylist
+SearchService -up- ISearch
+CatalogImportService -up- ICatalogImport
+TrackRepository -up- ITrackData
+UserDataRepository -up- IUserData
+MusicDB -up- SQL
+LogStore -up- ILog
+
+' Зв'язки Required (Socket)
+
+' UI Layer
+AppClient --( IApi
+
+' External
+MetadataProvider --( ICatalogImport
+
+' API Layer
+ApiGateway --( IAuth
+ApiGateway --( IAudio
+ApiGateway --( IBlock
+ApiGateway --( IPlaylist
+ApiGateway --( ISearch
+
+' Services Layer (з нумерацією порядку викликів для AudioService)
+AudioService --( IBlock : 1
+AudioService --( ITrackData : 2
+AudioService --( IAudioStorage : 3
+AudioService --( IUserData
+AudioService --( IAuth
+
+BlockService --( IUserData
+PlaylistService --( IUserData
+SearchService --( ITrackData
+
+CatalogImportService --( ITrackData
+CatalogImportService --( ILog
+
+' Data Access Layer
+TrackRepository --( SQL
+UserDataRepository --( SQL
+
+@enduml

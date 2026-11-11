@@ -1,23 +1,48 @@
-# UC-02 "Відтворення треку"
+# Завдання 5. Компонентна модель музичного сервісу
 
-## 1. Мета
-Описати єдиний флоу запуску аудіотреку, який об'єднує відразу три сценарії: нормальне відтворення (SC-01), відмову через блокування (SC-05) та помилку таймауту від CDN (SC-02).
+## Намір
+Описати архітектуру системи (UI, API, сервіси, Data Access, БД, зовнішні інтеграції) так, щоб вона трасувалась до ER (Завд. 1), вимог/UC (Завд. 2), Sequence UC-02 (Завд. 3) і Activity UC-02 (Завд. 4).
 
-## 2. Формат та учасники
-- **Формат:** Activity-діаграма. Вибрала цей варіант, бо GitHub нормально рендерить Mermaid-схеми в маркдауні, і зручно розбити процес на пули та намалювати паралельні завдання.
-- **Пули (Swimlanes):** `User`, `AppClient`, `AudioService`, `AudioStorageProvider`.
+## Межа системи
+Усередині "Music Streaming System": AppClient, ApiGateway, AuthService, AudioService, BlockService, PlaylistService, SearchService, CatalogImportService, TrackRepository, UserDataRepository, MusicDB, LogStore.
+Ззовні: AudioStorageProvider (CDN, інфраструктура, не актор — ADR-0003), MetadataProvider (зовнішня система, сама ініціює імпорт — UC-14).
 
-## 3. Кроки
-1. `User` натискає кнопку відтворення.
-2. `AudioService` спочатку перевіряє, чи не кинув користувач цей трек у чорний список. Якщо заблоковано — процес переривається (віддаємо 403).
-3. Якщо все нормально, процес роздвоюється:
-   - перша гілка йде в БД за метаданими;
-   - друга гілка паралельно відправляє запит до `AudioStorageProvider` за самим аудіопотоком.
-4. Чекаємо на стрім. Якщо `AudioStorageProvider` не відповідає довше ніж 5 секунд — обриваємо процес по таймауту (помилка 504).
-5. Якщо сховище відповіло вчасно, гілки зливаються, клієнт (`AppClient`) отримує дані й починає програвати музику.
+## Компоненти
+| Шар | Компонент | Provided-інтерфейс | Required-інтерфейс | Трасування |
+| :-- | :-- | :-- | :-- | :-- |
+| UI | AppClient (+OfflineStore) | — | IApi | UC-01..13, REQ-10 |
+| API | ApiGateway | IApi | IAuth, IAudio, IBlock, IPlaylist, ISearch | ADR-0006 |
+| Service | AuthService | IAuth (validateToken, isPremium) | — | REQ-01, REQ-09 |
+| Service | AudioService | IAudio (playTrack, playNextInQueue, downloadPlaylist) | IBlock, ITrackData, IUserData, IAudioStorage, IAuth | UC-02, UC-03, UC-12, REQ-01/02/09, SC-01/02/05 |
+| Service | BlockService | IBlock (checkBlockStatus, blockArtist, blockTrack) | IUserData | UC-09..11, REQ-03/04 |
+| Service | PlaylistService | IPlaylist (createPlaylist, addTrack, getPlaylistPage, addFavorite) | IUserData | UC-04..08, REQ-05/06/07 |
+| Service | SearchService | ISearch (search) | ITrackData | UC-01, REQ-08 |
+| Service | CatalogImportService | ICatalogImport (importCatalogUpdate) | ITrackData, ILog | UC-14, REQ-11, NFR-02 |
+| Data Access | TrackRepository | ITrackData (getTrackMetadata, search, upsert) | SQL до MusicDB | ARTIST, ALBUM, TRACK |
+| Data Access | UserDataRepository | IUserData (blocks, favorites, playlists) | SQL до MusicDB | USER, PLAYLIST, blocks, favorites |
+| DB | MusicDB | SQL | — | ER Завд. 1 |
+| Infra | LogStore | ILog (writeError) | — | NFR-02 |
+| Зовнішній | AudioStorageProvider | IAudioStorage (requestStream) | — | SC-01/02 |
+| Зовнішній | MetadataProvider | — | ICatalogImport | UC-14 |
 
-## 4. Критерії прийняття 
-- **AC-1:** На схемі є явні початковий та кінцевий вузли (Start/End).
-- **AC-2:** Є блок розгалуження (if/else), де ми перевіряємо статус `isBlocked`.
-- **AC-3:** Є паралельне виконання (через Fork/Join) для одночасного стягування метаданих і аудіофайлу.
-- **AC-4:** На схемі показано надсилання повідомлення до іншої системи (`AudioStorageProvider`) і чітко прописана реакція на нього (або успішне отримання потоку, або помилка по таймауту).
+## Критерії прийняття
+- AC-1: Межа системи показана явно; зовнішніх компонентів рівно два: AudioStorageProvider, MetadataProvider.
+- AC-2: Кожен компонент і залежність трасуються до UC/REQ/ER/Seq/Activity.
+- AC-3: Кожна залежність між компонентами іде через іменований інтерфейс (lollipop/socket).
+- AC-4: Імена AppClient, AudioService, BlockService, TrackRepository, AudioStorageProvider збігаються з Sequence (Завд. 3).
+- AC-5: AudioService викликає IBlock перед ITrackData та IAudioStorage (ADR-0004, Activity Завд. 4).
+  - AC-5а: Порядок викликів показаний номерами на залежностях: 1 — IBlock, 2 — ITrackData, 3 — IAudioStorage.
+- AC-6: AppClient взаємодіє з бекендом лише через ApiGateway (ADR-0006).
+  - AC-6а: AppClient не має залежностей від BlockService, AudioService, PlaylistService, SearchService, репозиторіїв; єдина залежність — IApi.
+- AC-7: До MusicDB звертаються лише TrackRepository і UserDataRepository.
+  - AC-7а: Сервіси залежать від БД лише транзитивно через ITrackData та IUserData; прямих залежностей сервіс -> SQL/MusicDB немає. AudioService requires ITrackData.
+- AC-8: MetadataProvider залежить від ICatalogImport; система не викликає MetadataProvider (ADR-0003).
+  - AC-8а: ICatalogImport надається CatalogImportService (lollipop); MetadataProvider — required-сторона (socket).
+- AC-9: CatalogImportService залежить від ILog (NFR-02, ADR-0002).
+  - AC-9а: Зв'язок CatalogImportService requires ILog (provided LogStore) присутній на діаграмі.
+- AC-10: Артефакт — PlantUML component diagram + один рендер.
+- AC-11: OfflineStore є вкладеним компонентом AppClient без залежностей від бекенду.
+
+## Припущення
+- ApiGateway у Sequence (Завд. 3) прозорий: лише маршрутизація й перевірка токена.
+- Статус Premium віддає AuthService (isPremium); у ER (Завд. 1) цього поля немає, ER не змінюється.
