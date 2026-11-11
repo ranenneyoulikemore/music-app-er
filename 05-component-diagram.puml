@@ -1,7 +1,9 @@
-```plantuml
 @startuml
-left to right direction
+top to bottom direction
 skinparam componentStyle uml2
+skinparam packagePadding 25
+skinparam nodesep 40
+skinparam ranksep 40
 
 ' Зовнішні компоненти (поза межею)
 component "AudioStorageProvider" as AudioStorageProvider <<external>>
@@ -9,7 +11,7 @@ component "MetadataProvider" as MetadataProvider <<external>>
 
 ' Інтерфейс зовнішньої системи CDN
 () "IAudioStorage" as IAudioStorage
-AudioStorageProvider -up- IAudioStorage
+AudioStorageProvider -left- IAudioStorage
 
 package "Music Streaming System" {
     
@@ -50,7 +52,7 @@ package "Music Streaming System" {
     () "ILog" as ILog
 }
 
-' Зв'язки Provided (Lollipop -up-)
+' Зв'язки Provided (Lollipop)
 ApiGateway -up- IApi
 AuthService -up- IAuth
 AudioService -up- IAudio
@@ -63,7 +65,7 @@ UserDataRepository -up- IUserData
 MusicDB -up- SQL
 LogStore -up- ILog
 
-' Зв'язки Required (Socket --( )
+' Зв'язки Required (Socket)
 
 ' UI Layer
 AppClient --( IApi
@@ -86,9 +88,7 @@ AudioService --( IUserData
 AudioService --( IAuth
 
 BlockService --( IUserData
-
 PlaylistService --( IUserData
-
 SearchService --( ITrackData
 
 CatalogImportService --( ITrackData
