@@ -1,10 +1,11 @@
+```mermaid
 flowchart TD
     subgraph User ["User (Слухач)"]
-        Start((● Початок))
+        Start(("● Початок"))
         PressPlay["Натискає кнопку 'Play'"]
         ViewError["Бачить повідомлення про помилку"]
         ListenAudio["Слухає аудіотрек"]
-        EndNormal((◉ Кінець))
+        EndNormal(("◉ Кінець"))
     end
 
     subgraph AppClient ["AppClient (UI-клієнт)"]
@@ -20,12 +21,12 @@ flowchart TD
         Fork["=== Розгалуження / Fork ==="]
 
         FetchMetadata["Отримання метаданих з TrackRepository"]
-        
+
         ReqStream["Ініціалізація очікування та асинхронний запит"]
         WaitEvent{"Очікування події\n(AudioService)"}
 
         Join["=== Злиття / Join ==="]
-        
+
         CheckStream{"Потік отримано?"}
         PrepareResponse["Формування 200 OK (AudioStreamDTO)"]
         ReturnStreamError["Повертає помилку\n(504 для таймауту / помилка джерела)"]
@@ -45,7 +46,7 @@ flowchart TD
     Return403 --> ShowError
 
     %% Паралельний потік (Fork)
-    CheckBlock -- Ні --> Fork
+    CheckBlock -- "Ні" --> Fork
     Fork --> FetchMetadata
     Fork --> ReqStream
 
@@ -78,3 +79,4 @@ flowchart TD
     PrepareResponse --> RenderPlayer
     RenderPlayer --> ListenAudio
     ListenAudio --> EndNormal
+```
